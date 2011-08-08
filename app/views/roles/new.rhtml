@@ -2,6 +2,7 @@
 
 <% labelled_tabular_form_for :role, @role, :url => { :action => 'new' }, :html => {:id => 'role_form'} do |f| %>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <%= render :partial => 'form', :locals => { :f => f } %>
     <%= submit_tag l(:button_create) %>
     <%= link_to l(:button_cancel), :back %>
@@ -12,4 +13,9 @@
 		<%= link_to l(:button_cancel), :back %>
 	</p>
 >>>>>>> Adding cancel buttons to the remaining Administration->New X views...(#509)
+=======
+    <%= render :partial => 'form', :locals => { :f => f } %>
+    <%= submit_tag l(:button_create) %>
+    <%= link_to l(:button_cancel), :back %>
+>>>>>>> Removing erroneous <p> tag added to roles controls.
 <% end %>
