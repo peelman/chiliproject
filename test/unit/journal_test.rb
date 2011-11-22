@@ -1,3 +1,4 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
@@ -73,13 +74,13 @@ class JournalTest < ActiveSupport::TestCase
     assert_difference("Journal.count") do
       assert issue.save
     end
-    
+
     journal = issue.reload.journals.first
     assert_equal ["","Test initial journal"], journal.changes["subject"]
     assert_equal [0, @project.id], journal.changes["project_id"]
     assert_equal [nil, "Some content"], journal.changes["description"]
   end
-  
+
   test "creating a journal should update the updated_on value of the parent record (touch)" do
     @user = User.generate!
     @project = Project.generate!

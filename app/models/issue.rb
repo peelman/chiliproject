@@ -1,3 +1,4 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
@@ -549,7 +550,7 @@ class Issue < ActiveRecord::Base
   def nested_set_span
     rgt - lft
   end
-  
+
   # Returns a string of css classes that apply to the issue
   def css_classes
     s = "issue status-#{status.position} priority-#{priority.position}"
