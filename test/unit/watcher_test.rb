@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -13,11 +14,7 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class WatcherTest < ActiveSupport::TestCase
-  fixtures :projects, :users, :members, :member_roles, :roles, :enabled_modules,
-           :issues,
-           :boards, :messages,
-           :wikis, :wiki_pages,
-           :watchers
+  fixtures :all
 
   def setup
     @user = User.find(1)
@@ -42,7 +39,28 @@ class WatcherTest < ActiveSupport::TestCase
     assert Issue.watched_by(@user).include?(@issue)
   end
 
+  def test_watcher_users
+    watcher_users = Issue.find(2).watcher_users
+    assert_kind_of Array, watcher_users
+    assert_kind_of User, watcher_users.first
+  end
+
+  def test_watcher_users_should_not_validate_user
+    User.update_all("firstname = ''", "id=1")
+    @user.reload
+    assert !@user.valid?
+
+    issue = Issue.new(:project => Project.find(1), :tracker_id => 1, :subject => "test", :author => User.find(2))
+    issue.watcher_users << @user
+    issue.save!
+    assert issue.watched_by?(@user)
+  end
+
   def test_watcher_user_ids
+    assert_equal [1, 3], Issue.find(2).watcher_user_ids.sort
+  end
+
+  def test_watcher_user_ids=
     issue = Issue.new
     issue.watcher_user_ids = ['1', '3']
     assert issue.watched_by?(User.find(1))
@@ -102,5 +120,35 @@ class WatcherTest < ActiveSupport::TestCase
 
     assert Issue.find(1).watched_by?(user)
     assert !Issue.find(4).watched_by?(user)
+  end
+
+  context "group watch" do
+    setup do
+      @group = Group.generate!
+      Member.generate!(:project => Project.find(1), :roles => [Role.find(1)], :principal => @group)
+      @group.users << @user = User.find(1)
+      @group.users << @user2 = User.find(2)
+    end
+    
+    should "be valid" do
+      assert @issue.add_watcher(@group)
+      @issue.reload
+      assert @issue.watchers.detect { |w| w.user == @group }
+    end
+    
+    should "add all group members to recipients" do
+      @issue.watchers.delete_all
+      @issue.reload
+    
+      assert @issue.watcher_recipients.empty?
+      assert @issue.add_watcher(@group)
+
+      @user.save    
+      @issue.reload
+      assert @issue.watcher_recipients.include?(@user.mail)
+      assert @issue.watcher_recipients.include?(@user2.mail)
+
+    end
+    
   end
 end

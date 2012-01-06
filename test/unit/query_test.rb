@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -100,6 +101,34 @@ class QueryTest < ActiveSupport::TestCase
     query = Query.new(:project => Project.find(1), :name => '_')
     query.add_filter('done_ratio', '>=', ['40'])
     assert query.statement.include?("#{Issue.table_name}.done_ratio >= 40")
+    find_issues_with_query(query)
+  end
+
+  def test_operator_date_equals
+    query = Query.new(:name => '_')
+    query.add_filter('due_date', '=', ['2011-07-10'])
+    assert_match /issues\.due_date > '2011-07-09 23:59:59(\.9+)?' AND issues\.due_date <= '2011-07-10 23:59:59(\.9+)?/, query.statement
+    find_issues_with_query(query)
+  end
+
+  def test_operator_date_lesser_than
+    query = Query.new(:name => '_')
+    query.add_filter('due_date', '<=', ['2011-07-10'])
+    assert_match /issues\.due_date <= '2011-07-10 23:59:59(\.9+)?/, query.statement
+    find_issues_with_query(query)
+  end
+
+  def test_operator_date_greater_than
+    query = Query.new(:name => '_')
+    query.add_filter('due_date', '>=', ['2011-07-10'])
+    assert_match /issues\.due_date > '2011-07-09 23:59:59(\.9+)?'/, query.statement
+    find_issues_with_query(query)
+  end
+
+  def test_operator_date_between
+    query = Query.new(:name => '_')
+    query.add_filter('due_date', '><', ['2011-06-23', '2011-07-10'])
+    assert_match /issues\.due_date > '2011-06-22 23:59:59(\.9+)?' AND issues\.due_date <= '2011-07-10 23:59:59(\.9+)?/, query.statement
     find_issues_with_query(query)
   end
 
@@ -382,6 +411,50 @@ class QueryTest < ActiveSupport::TestCase
     assert !q.editable_by?(developer)
   end
 
+  context "#display_subprojects" do
+    setup do
+      Setting.display_subprojects_issues = 0
+      User.current = nil
+    end
+
+    should "not include subprojects when false" do
+      query = Query.new(:project => Project.find(1), :name => '_')
+      query.display_subprojects = false
+
+      issues = find_issues_with_query(query)
+      issue_ids = issues.collect(&:id)
+
+      assert issue_ids.include?(1), "Didn't find issue 1 on current project"
+      assert !issue_ids.include?(5), "Issue 5 on sub-project included when it shouldn't be"
+      assert !issue_ids.include?(6), "Issue 6 on a private sub-project included when it shouldn't be"
+    end
+
+    should "include subprojects when true" do
+      query = Query.new(:project => Project.find(1), :name => '_')
+      query.display_subprojects = true
+
+      issues = find_issues_with_query(query)
+      issue_ids = issues.collect(&:id)
+
+      assert issue_ids.include?(1), "Didn't find issue 1 on current project"
+      assert issue_ids.include?(5), "Didn't find issue 5 on sub-project"
+      assert !issue_ids.include?(6), "Issue 6 on a private sub-project included when it shouldn't be"
+    end
+
+    should "include private subprojects automatically when true" do
+      User.current = User.find(2)
+      query = Query.new(:project => Project.find(1), :name => '_')
+      query.display_subprojects = true
+
+      issues = find_issues_with_query(query)
+      issue_ids = issues.collect(&:id)
+
+      assert issue_ids.include?(1), "Didn't find issue 1 on current project"
+      assert issue_ids.include?(5), "Didn't find issue 5 on sub-project"
+      assert issue_ids.include?(6), "Didn't find issue 6 on a private sub-project"
+    end
+  end
+
   context "#available_filters" do
     setup do
       @query = Query.new(:name => "_")
@@ -444,6 +517,101 @@ class QueryTest < ActiveSupport::TestCase
 
     end
 
+    context "'watcher_id' filter" do
+      context "globally" do
+        context "for an anonymous user" do
+          should "not be present" do
+            assert ! @query.available_filters.keys.include?("watcher_id")
+          end
+        end
+
+        context "for a logged in user" do
+          setup do
+            User.current = User.find 1
+          end
+
+          teardown do
+            User.current = nil
+          end
+
+          should "be present" do
+            assert @query.available_filters.keys.include?("watcher_id")
+          end
+
+          should "be a list" do
+            assert_equal :list, @query.available_filters["watcher_id"][:type]
+          end
+
+          should "have a list of active users as values" do
+            assert @query.available_filters["watcher_id"][:values].include?(["<< me >>", "me"])
+            assert @query.available_filters["watcher_id"][:values].include?(["John Smith", "2"])
+            assert @query.available_filters["watcher_id"][:values].include?(["Dave Lopper", "3"])
+            assert @query.available_filters["watcher_id"][:values].include?(["redMine Admin", "1"])
+            assert @query.available_filters["watcher_id"][:values].include?(["User Misc", "8"])
+          end
+
+          should "not include active users not member of any project" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(['Robert Hill','4'])
+          end
+
+          should "not include locked users as values" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(['Dave2 Lopper2','5'])
+          end
+
+          should "not include the anonymous user as values" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(['Anonymous','6'])
+          end
+        end
+      end
+
+      context "in a project" do
+        setup do
+          @query.project = Project.find(1)
+        end
+
+        context "for an anonymous user" do
+          should "not be present" do
+            assert ! @query.available_filters.keys.include?("watcher_id")
+          end
+        end
+
+        context "for a logged in user" do
+          setup do
+            User.current = User.find 1
+          end
+
+          teardown do
+            User.current = nil
+          end
+
+          should "be present" do
+            assert @query.available_filters.keys.include?("watcher_id")
+          end
+
+          should "be a list" do
+            assert_equal :list, @query.available_filters["watcher_id"][:type]
+          end
+
+          should "have a list of the project members as values" do
+            assert @query.available_filters["watcher_id"][:values].include?(["<< me >>", "me"])
+            assert @query.available_filters["watcher_id"][:values].include?(["John Smith", "2"])
+            assert @query.available_filters["watcher_id"][:values].include?(["Dave Lopper", "3"])
+          end
+
+          should "not include non-project members as values" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(["redMine Admin", "1"])
+          end
+
+          should "not include locked project members as values" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(['Dave2 Lopper2','5'])
+          end
+
+          should "not include the anonymous user as values" do
+            assert ! @query.available_filters["watcher_id"][:values].include?(['Anonymous','6'])
+          end
+        end
+      end
+    end
   end
 
   context "#statement" do

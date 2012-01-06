@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -108,6 +109,10 @@ class RoutingTest < ActionController::IntegrationTest
     should_route :post, "/issues/bulk_edit", :controller => 'issues', :action => 'bulk_update'
   end
 
+  context "journals" do
+    should_route :get, "/journals/100/diff/description", :controller => 'journals', :action => 'diff', :id => '100', :field => 'description'
+  end
+  
   context "issue categories" do
     should_route :get, "/projects/test/issue_categories/new", :controller => 'issue_categories', :action => 'new', :project_id => 'test'
 
@@ -345,4 +350,9 @@ class RoutingTest < ActionController::IntegrationTest
   context "administration panel" do
     should_route :get, "/admin/projects", :controller => 'admin', :action => 'projects'
   end
+
+  context "auto_completes" do
+    should_route :get, "/users/auto_complete", :controller => 'auto_completes', :action => 'users'
+  end
+  
 end

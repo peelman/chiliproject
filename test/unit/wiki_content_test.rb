@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -42,8 +43,8 @@ class WikiContentTest < ActiveSupport::TestCase
     page = WikiPage.new(:wiki => @wiki, :title => "A new page")
     page.content = WikiContent.new(:text => "Content text", :author => User.find(1), :comments => "My comment")
     assert page.save
-
-    assert_equal 1, ActionMailer::Base.deliveries.size
+    
+    assert_equal 2, ActionMailer::Base.deliveries.size
   end
 
   def test_update
@@ -62,8 +63,8 @@ class WikiContentTest < ActiveSupport::TestCase
     content = @page.content
     content.text = "My new content"
     assert content.save
-
-    assert_equal 1, ActionMailer::Base.deliveries.size
+    
+    assert_equal 2, ActionMailer::Base.deliveries.size
   end
 
   def test_fetch_history

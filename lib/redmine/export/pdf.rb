@@ -1,8 +1,8 @@
-# encoding: utf-8
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -408,6 +408,7 @@ module Redmine
         pdf.RDMCell(190,5, l(:label_history), "B")
         pdf.Ln
         for journal in issue.journals.find(:all, :include => [:user], :order => "#{Journal.table_name}.created_at ASC")
+          next if journal.initial?
           pdf.SetFontStyle('B',8)
           pdf.RDMCell(190,5, format_time(journal.created_at) + " - " + journal.user.name)
           pdf.Ln

@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -71,8 +72,7 @@ class TimeEntryReportsController < ApplicationController
       @periods = []
       # Date#at_beginning_of_ not supported in Rails 1.2.x
       date_from = @from.to_time
-      # 100 columns max
-      while date_from <= @to.to_time && @periods.length < 100
+      while date_from <= @to.to_time
         case @columns
         when 'year'
           @periods << "#{date_from.year}"

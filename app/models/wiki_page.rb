@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,7 +27,7 @@ class WikiPage < ActiveRecord::Base
                 :datetime => :created_on,
                 :url => Proc.new {|o| {:controller => 'wiki', :action => 'show', :project_id => o.wiki.project, :id => o.title}}
 
-  acts_as_searchable :columns => ['title', 'text'],
+  acts_as_searchable :columns => ["#{WikiPage.table_name}.title", "#{WikiContent.table_name}.text"],
                      :include => [{:wiki => :project}, :content],
                      :project_key => "#{Wiki.table_name}.project_id"
 
@@ -50,6 +51,10 @@ class WikiPage < ActiveRecord::Base
     if new_record? && DEFAULT_PROTECTED_PAGES.include?(title.to_s.downcase)
       self.protected = true
     end
+  end
+
+  def to_liquid
+    WikiPageDrop.new(self)
   end
 
   def visible?(user=User.current)

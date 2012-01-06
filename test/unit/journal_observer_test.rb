@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +25,7 @@ class JournalObserverTest < ActiveSupport::TestCase
   context "#after_create for 'issue_updated'" do
     should "should send a notification when configured as a notification" do
       Setting.notified_events = ['issue_updated']
-      assert_difference('ActionMailer::Base.deliveries.size') do
+      assert_difference('ActionMailer::Base.deliveries.size', 2) do
         @issue.init_journal(@user)
         @issue.subject = "A change to the issue"
         assert @issue.save
@@ -39,17 +40,17 @@ class JournalObserverTest < ActiveSupport::TestCase
         assert @issue.save
       end
     end
-    
+
   end
 
   context "#after_create for 'issue_note_added'" do
     should "should send a notification when configured as a notification" do
       Setting.notified_events = ['issue_note_added']
-      assert_difference('ActionMailer::Base.deliveries.size') do
+      assert_difference('ActionMailer::Base.deliveries.size', 2) do
         @issue.init_journal(@user, 'This update has a note')
         assert @issue.save
       end
-      
+
     end
 
     should "not send a notification with not configured" do
@@ -58,20 +59,20 @@ class JournalObserverTest < ActiveSupport::TestCase
         @issue.init_journal(@user, 'This update has a note')
         assert @issue.save
       end
-      
+
     end
   end
 
   context "#after_create for 'issue_status_updated'" do
     should "should send a notification when configured as a notification" do
       Setting.notified_events = ['issue_status_updated']
-      assert_difference('ActionMailer::Base.deliveries.size') do
+      assert_difference('ActionMailer::Base.deliveries.size', 2) do
         @issue.init_journal(@user)
         @issue.status = IssueStatus.generate!
         assert @issue.save
 
       end
-      
+
     end
 
     should "not send a notification with not configured" do
@@ -88,12 +89,12 @@ class JournalObserverTest < ActiveSupport::TestCase
   context "#after_create for 'issue_priority_updated'" do
     should "should send a notification when configured as a notification" do
       Setting.notified_events = ['issue_priority_updated']
-      assert_difference('ActionMailer::Base.deliveries.size') do
+      assert_difference('ActionMailer::Base.deliveries.size', 2) do
         @issue.init_journal(@user)
         @issue.priority = IssuePriority.generate!
         assert @issue.save
       end
-      
+
     end
 
     should "not send a notification with not configured" do
@@ -103,7 +104,7 @@ class JournalObserverTest < ActiveSupport::TestCase
         @issue.priority = IssuePriority.generate!
         assert @issue.save
       end
-      
+
     end
   end
 end

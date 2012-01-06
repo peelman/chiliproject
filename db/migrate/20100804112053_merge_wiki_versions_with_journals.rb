@@ -1,7 +1,8 @@
+#-- encoding: UTF-8
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -12,17 +13,23 @@
 #++
 
 class MergeWikiVersionsWithJournals < ActiveRecord::Migration
-  def self.up
-    # This is provided here for migrating up after the WikiContent::Version class has been removed
-    unless WikiContent.const_defined?("Version")
-      WikiContent.const_set("Version", Class.new(ActiveRecord::Base))
+  # This is provided here for migrating up after the WikiContent::Version class has been removed
+  class WikiContent < ActiveRecord::Base
+    class Version < ActiveRecord::Base
     end
+  end
 
+  def self.up
     # avoid touching WikiContent on journal creation
     WikiContentJournal.class_exec {
       def touch_journaled_after_creation
       end
     }
+
+    # assign all wiki_contents w/o author to the anonymous user - they used to
+    # work w/o author but don't any more.
+    WikiContent.update_all({:author_id => User.anonymous.id}, :author_id => nil)
+    WikiContent::Version.update_all({:author_id => User.anonymous.id}, :author_id => nil)
 
     WikiContent::Version.find_by_sql("SELECT * FROM wiki_content_versions").each do |wv|
       journal = WikiContentJournal.create!(:journaled_id => wv.wiki_content_id, :user_id => wv.author_id,
