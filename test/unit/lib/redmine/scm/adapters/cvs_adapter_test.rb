@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -68,7 +68,7 @@ begin
         assert_equal version, @adapter.class.scm_command_version
       end
     else
-      puts "Cvs test repository NOT FOUND. Skipping unit tests !!!"
+      should "CVS test repository not found."
       def test_fake; assert true end
     end
   end

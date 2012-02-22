@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,9 @@ class IssueObserver < ActiveRecord::Observer
 
   def after_create(issue)
     if self.send_notification
-      Mailer.deliver_issue_add(issue) if Setting.notified_events.include?('issue_added')
+      (issue.recipients + issue.watcher_recipients).uniq.each do |recipient|
+        Mailer.deliver_issue_add(issue, recipient)
+      end
     end
     clear_notification
   end

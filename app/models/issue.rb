@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -101,6 +101,10 @@ class Issue < ActiveRecord::Base
   # Returns true if usr or current user is allowed to view the issue
   def visible?(usr=nil)
     (usr || User.current).allowed_to?(:view_issues, self.project)
+  end
+
+  def to_liquid
+    IssueDrop.new(self)
   end
 
   def after_initialize
@@ -401,6 +405,11 @@ class Issue < ActiveRecord::Base
     !due_date.nil? && (due_date < Date.today) && !status.is_closed?
   end
 
+  # Returns true if the issue is due today and not closed
+  def due_today?
+    !due_date.nil? && (due_date == Date.today) && !status.is_closed?
+  end
+
   # Is the amount of work done less than it should for the due date
   def behind_schedule?
     return false if start_date.nil? || due_date.nil?
@@ -556,6 +565,7 @@ class Issue < ActiveRecord::Base
     s = "issue status-#{status.position} priority-#{priority.position}"
     s << ' closed' if closed?
     s << ' overdue' if overdue?
+    s << ' due-today' if due_today?
     s << ' child' if child?
     s << ' parent' unless leaf?
     s << ' created-by-me' if User.current.logged? && author_id == User.current.id

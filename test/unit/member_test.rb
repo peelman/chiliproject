@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -89,6 +89,15 @@ class MemberTest < ActiveSupport::TestCase
             @member.destroy
           end
         end
+
+        should "not prune watchers if the user still has permission to watch as a non-member" do
+          @member_on_public_project = Member.create!(:project => Project.find(1), :principal => User.find(9), :role_ids => [1, 2])
+
+          assert_no_difference 'Watcher.count' do
+            @member_on_public_project.destroy
+          end
+        end
+
       end
 
       context "by updating roles" do

@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -34,7 +34,8 @@ class Attachment < ActiveRecord::Base
         end),
         :activity_type => 'files',
         :activity_permission => :view_files,
-        :activity_find_options => { :include => { :version => :project } }
+        :activity_find_options => { :include => { :version => :project } },
+        :except => [:downloads]
 
   acts_as_activity :type => 'documents', :permission => :view_documents,
         :find_options => { :include => { :document => :project } }

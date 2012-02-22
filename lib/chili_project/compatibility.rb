@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -28,7 +28,14 @@ module ChiliProject
     #
     # Released: ChiliProject 2.5.0
     def self.using_jquery?
-      false
+      true
+    end
+
+    # Is Liquid markup available?
+    #
+    # Released: ChiliProject 3.0.0
+    def self.using_liquid?
+      true
     end
 
     # Catch-all to be overwritten be future compatibility checks.

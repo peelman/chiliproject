@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -197,8 +197,16 @@ class UsersController < ApplicationController
 
 
   def edit_membership
-    @membership = Member.edit_membership(params[:membership_id], params[:membership], @user)
-    @membership.save if request.post?
+    if params[:project_ids] # Multiple memberships, one per project
+      params[:project_ids].each do |project_id|
+        @membership = Member.edit_membership(params[:membership_id], (params[:membership] || {}).merge(:project_id => project_id), @user)
+        @membership.save if request.post?
+      end
+    else # Single membership
+      @membership = Member.edit_membership(params[:membership_id], params[:membership], @user)
+      @membership.save if request.post?
+    end
+
     respond_to do |format|
       if @membership.valid?
         format.html { redirect_to :controller => 'users', :action => 'edit', :id => @user, :tab => 'memberships' }

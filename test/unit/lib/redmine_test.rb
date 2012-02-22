@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -42,9 +42,7 @@ class RedmineTest < ActiveSupport::TestCase
   end
 
   def test_account_menu
-    assert_number_of_items_in_menu :account_menu, 4
-    assert_menu_contains_item_named :account_menu, :login
-    assert_menu_contains_item_named :account_menu, :register
+    assert_number_of_items_in_menu :account_menu, 2
     assert_menu_contains_item_named :account_menu, :my_account
     assert_menu_contains_item_named :account_menu, :logout
   end

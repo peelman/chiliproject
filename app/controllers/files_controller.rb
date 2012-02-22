@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -42,7 +42,11 @@ class FilesController < ApplicationController
     render_attachment_warning_if_needed(container)
 
     if !attachments.empty? && !attachments[:files].blank? && Setting.notified_events.include?('file_added')
-      Mailer.deliver_attachments_added(attachments[:files])
+      # TODO: refactor
+      recipients = attachments[:files].first.container.project.notified_users.select {|user| user.allowed_to?(:view_files, container.project)}.collect  {|u| u.mail}
+      recipients.each do |recipient|
+        Mailer.deliver_attachments_added(attachments[:files], recipient)
+      end
     end
     redirect_to project_files_path(@project)
   end

@@ -2,7 +2,7 @@
 #-- copyright
 # ChiliProject is a project management system.
 #
-# Copyright (C) 2010-2011 the ChiliProject Team
+# Copyright (C) 2010-2012 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -33,6 +33,10 @@ class Tracker < ActiveRecord::Base
 
   def <=>(tracker)
     name <=> tracker.name
+  end
+
+  def to_liquid
+    TrackerDrop.new(self)
   end
 
   def self.all
